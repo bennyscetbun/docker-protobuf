@@ -56,6 +56,18 @@ RUN mkdir -p /grpc-web && \
     make install-plugin && \
     install -Ds /usr/local/bin/protoc-gen-grpc-web /out/usr/bin/protoc-gen-grpc-web
 
+ARG PROTOC_GEN_GRPC_KOTLIN_VERSION
+ARG PACKR_VERSION
+RUN apk add --no-cache openjdk11
+RUN mkdir -p /grpc-kotlin && \
+    cd /grpc-kotlin && \
+    wget -q -O protoc-gen-grpc-kotlin.jar https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-kotlin/${PROTOC_GEN_GRPC_KOTLIN_VERSION}/protoc-gen-grpc-kotlin-1.0.0-jdk7.jar && \
+    wget -q -O packr.jar https://github.com/libgdx/packr/releases/download/${PACKR_VERSION}/packr-all-${PACKR_VERSION}.jar && \
+    wget -q -O OpenJDK11U-jdk_x64_linux_hotspot.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.10_9.tar.gz && \
+    java -jar packr.jar --platform linux64 --jdk OpenJDK11U-jdk_x64_linux_hotspot.tar.gz --useZgcIfSupportedOs --executable protoc-gen-grpc-kotlin --classpath protoc-gen-grpc-kotlin.jar --vmargs Xmx1G --mainclass io.grpc.kotlin.generator.GeneratorRunner --output /grpc-kotlin/out
+RUN cp -r /grpc-kotlin/out/ /out/protoc-gen-grpc-kotlin.dir/
+RUN echo "#!/bin/sh"  > /out/usr/bin/protoc-gen-grpc-kotlin && echo "/protoc-gen-grpc-kotlin.dir/protoc-gen-grpc-kotlin $@" >> /out/usr/bin/protoc-gen-grpc-kotlin && chmod 755 /out/usr/bin/protoc-gen-grpc-kotlin
+
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} as go_builder
 RUN apk add --no-cache build-base curl git
@@ -232,6 +244,7 @@ RUN upx --lzma $(find /out/usr/bin/ \
         -not -name 'grpc_python_plugin' \
         -or -name 'protoc-gen-*' \
         -not -name 'protoc-gen-dart' \
+        -not -name 'protoc-gen-grpc-kotlin' \
     )
 RUN find /out -name "*.a" -delete -or -name "*.la" -delete
 
@@ -257,5 +270,5 @@ RUN apk add --no-cache bash libstdc++ && \
     ln -s /usr/bin/protoc-gen-swiftgrpc /usr/bin/protoc-gen-grpc-swift && \
     ln -s /usr/local/lib/node_modules/ts-protoc-gen/bin/protoc-gen-ts /usr/bin/protoc-gen-ts
 COPY protoc-wrapper /usr/bin/protoc-wrapper
-ENV LD_LIBRARY_PATH='/usr/lib:/usr/lib64:/usr/lib/local'
+ENV LD_LIBRARY_PATH='/usr/lib:/usr/lib64:/usr/lib/local:/lib'
 ENTRYPOINT ["protoc-wrapper", "-I/usr/include"]

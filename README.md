@@ -26,7 +26,7 @@ It started out as https://github.com/znly/docker-protobuf fork, but grew into a 
 - [stepancheg/rust-protobuf](https://github.com/stepancheg/rust-protobuf)
 - [TheThingsIndustries/protoc-gen-fieldmask](https://github.com/TheThingsIndustries/protoc-gen-fieldmask)
 - [TheThingsIndustries/protoc-gen-gogottn](https://github.com/TheThingsIndustries/protoc-gen-gogottn)
-
+- [grpc/grpc-kotlin](https://github.com/grpc/grpc-kotlin)
 ## Supported languages
 - C
 - C#
@@ -35,6 +35,7 @@ It started out as https://github.com/znly/docker-protobuf fork, but grew into a 
 - Go
 - Java / JavaNano (Android)
 - JavaScript
+- Kotlin
 - Objective-C
 - PHP
 - Python
